@@ -16,7 +16,7 @@ builder.Services.AddValidatorsFromAssembly(assembly);
 
 builder.Services.AddMarten(opts =>
 {
-    opts.Connection(builder.Configuration.GetConnectionString("Database"!));
+    opts.Connection(builder.Configuration.GetConnectionString("Database")!);
 }).UseLightweightSessions();
 
 if (builder.Environment.IsDevelopment())
@@ -25,14 +25,14 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
 builder.Services.AddHealthChecks()
-    .AddNpgSql(builder.Configuration.GetConnectionString("Database"));
+    .AddNpgSql(builder.Configuration.GetConnectionString("Database")!);
 
 var app = builder.Build();
 
 //Configura the HTTP request pipeline
 app.MapCarter();
 
-app.UseHealthChecks("health",
+app.UseHealthChecks("/health",
     new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
     { 
         ResponseWriter= UIResponseWriter.WriteHealthCheckUIResponse
