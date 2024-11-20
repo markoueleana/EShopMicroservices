@@ -1,4 +1,5 @@
 using Catalog.API.Data;
+using HealthChecks.UI.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,10 +24,19 @@ if (builder.Environment.IsDevelopment())
 
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("Database"));
+
 var app = builder.Build();
 
 //Configura the HTTP request pipeline
 app.MapCarter();
+
+app.UseHealthChecks("health",
+    new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    { 
+        ResponseWriter= UIResponseWriter.WriteHealthCheckUIResponse
+    });
 
 app.UseExceptionHandler(options => { });
 
