@@ -13,13 +13,15 @@ public class StoreBasketCommandValidator : AbstractValidator<StoreBasketCommand>
     }
 }
 
-public class StoreBasketCommadHandler : ICommandHandler<StoreBasketCommand, StoreBasketResult>
+public class StoreBasketCommadHandler (IBasketRepository repository)
+    : ICommandHandler<StoreBasketCommand, StoreBasketResult>
 {
     public async Task<StoreBasketResult> Handle(StoreBasketCommand command, CancellationToken cancellationToken)
     {
-        //todo: save the basket in the database
+        ShoppingCart cart = command.Cart;
+       await repository.StoreBasket(command.Cart, cancellationToken);
         //todo: update in cache
 
-        return new StoreBasketResult("eam");
+        return new StoreBasketResult(command.Cart.UserName);
     }
 }
