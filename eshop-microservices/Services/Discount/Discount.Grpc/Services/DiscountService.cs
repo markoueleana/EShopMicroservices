@@ -37,13 +37,34 @@ namespace Discount.Grpc.Services
             return couponModel;
         }
 
-        public override Task<CouponModel> UpdateDiscount(UpdateDiscountRequest request, ServerCallContext context)
+        public override async Task<CouponModel> UpdateDiscount(UpdateDiscountRequest request, ServerCallContext context)
         {
-            return base.UpdateDiscount(request, context);
+            var coupon = request.Coupon.Adapt<Coupon>();
+            if (coupon == null)
+                throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid Request object."));
+
+            dbContext.Coupons.Update(coupon);
+            await dbContext.SaveChangesAsync();
+            logger.LogInformation("Discount is successfully updated with ProductName : {ProductName}, Amount : {Amount}, Description {Description}", coupon.ProductName, coupon.Amount, coupon.Description);
+
+            var couponModel = coupon.Adapt<CouponModel>();
+            return couponModel;
         }
-        public override Task<DeleteDiscountResponse> DeleteDiscount(DeleteDiscountRequest request, ServerCallContext context)
+        public override async Task<DeleteDiscountResponse> DeleteDiscount(DeleteDiscountRequest request, ServerCallContext context)
         {
-            return base.DeleteDiscount(request, context);
-        } 
+            var coupon = await dbContext
+                  .Coupons
+                  .FirstOrDefaultAsync(c => c.ProductName == request.ProductName);
+            if (coupon == null)
+                throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid Request object."));
+            dbContext.Coupons.Remove(coupon);
+            dbContext.SaveChangesAsync();
+
+            logger.LogInformation("Discount has successfully been deleted with ProductName : {ProductName}, Amount : {Amount}, Description {Description}", coupon.ProductName, coupon.Amount, coupon.Description);
+
+
+            return new DeleteDiscountResponse { Success = true };
+
+        }
     }
 }
